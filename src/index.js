@@ -315,3 +315,15 @@ main();
 // ping
 // live test
 // retry
+
+function getUser(id) {
+  const user = null;
+  return user.name;
+}
+
+
+function getUser(id) {
+  const user = null;
+  return user.name;
+}
+
