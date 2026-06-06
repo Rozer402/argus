@@ -1,0 +1,15 @@
+# Specifies intentionally untracked files to ignore — keeps secrets and build artifacts out of git.
+
+# Dependencies
+node_modules/
+
+# Local environment secrets — never commit this
+.env
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/

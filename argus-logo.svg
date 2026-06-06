@@ -1,0 +1,92 @@
+<svg viewBox="0 0 480 300" width="480" height="300" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="iris" cx="44%" cy="40%" r="65%">
+    <stop offset="0%" stop-color="#c4b5fd"/>
+    <stop offset="45%" stop-color="#7c3aed"/>
+    <stop offset="100%" stop-color="#3b0764"/>
+  </radialGradient>
+  <radialGradient id="pupilCore" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#6c47ff" stop-opacity="0.7"/>
+    <stop offset="100%" stop-color="#6c47ff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#6c47ff" stop-opacity="0.15"/>
+    <stop offset="100%" stop-color="#6c47ff" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="9" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="softglow" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="5" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+
+<!-- background -->
+<rect width="480" height="300" fill="#08080f" rx="12"/>
+
+<!-- ambient bg glow -->
+<ellipse cx="240" cy="130" rx="140" ry="65" fill="url(#bgGlow)"/>
+
+<!-- eye fill -->
+<path d="M 82,130 C 148,56 332,56 398,130 C 332,204 148,204 82,130 Z" fill="#0c0920"/>
+
+<!-- eye glow outline -->
+<path d="M 82,130 C 148,56 332,56 398,130 C 332,204 148,204 82,130 Z"
+      fill="none" stroke="#6c47ff" stroke-width="1.2" opacity="0.45" filter="url(#glow)"/>
+
+<!-- eye crisp outline -->
+<path d="M 82,130 C 148,56 332,56 398,130 C 332,204 148,204 82,130 Z"
+      fill="none" stroke="#8b5cf6" stroke-width="0.9" opacity="0.8"/>
+
+<!-- corner dots -->
+<circle cx="82" cy="130" r="3.5" fill="#7c3aed" opacity="0.9" filter="url(#softglow)"/>
+<circle cx="398" cy="130" r="3.5" fill="#7c3aed" opacity="0.9" filter="url(#softglow)"/>
+
+<!-- iris -->
+<circle cx="240" cy="130" r="52" fill="url(#iris)" filter="url(#softglow)"/>
+<circle cx="240" cy="130" r="52" fill="none" stroke="#a78bfa" stroke-width="0.8" opacity="0.5"/>
+<circle cx="240" cy="130" r="40" fill="none" stroke="#7c3aed" stroke-width="0.5" opacity="0.35"/>
+
+<!-- iris tick marks -->
+<circle cx="284" cy="130" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="271" cy="161" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="240" cy="174" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="209" cy="161" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="196" cy="130" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="209" cy="99" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="240" cy="86" r="2.2" fill="#a78bfa" opacity="0.55"/>
+<circle cx="271" cy="99" r="2.2" fill="#a78bfa" opacity="0.55"/>
+
+<!-- pupil -->
+<circle cx="240" cy="130" r="27" fill="#08080f"/>
+<circle cx="240" cy="130" r="22" fill="url(#pupilCore)"/>
+<circle cx="240" cy="130" r="11" fill="#6c47ff" opacity="0.35"/>
+
+<!-- highlight -->
+<ellipse cx="255" cy="116" rx="9" ry="6" fill="white" opacity="0.45" transform="rotate(-18,255,116)"/>
+<circle cx="226" cy="145" r="3" fill="white" opacity="0.18"/>
+
+<!-- side dashes -->
+<line x1="22" y1="130" x2="64" y2="130" stroke="#6c47ff" stroke-width="0.9" opacity="0.28" stroke-dasharray="4 3"/>
+<line x1="416" y1="130" x2="458" y2="130" stroke="#6c47ff" stroke-width="0.9" opacity="0.28" stroke-dasharray="4 3"/>
+
+<!-- ARGUS wordmark -->
+<text x="240" y="247"
+      text-anchor="middle"
+      font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif"
+      font-size="44" font-weight="700" letter-spacing="18"
+      fill="#f1f5f9">ARGUS</text>
+
+<!-- flanking rules -->
+<line x1="38" y1="236" x2="78" y2="236" stroke="#6c47ff" stroke-width="0.8" opacity="0.38"/>
+<line x1="402" y1="236" x2="442" y2="236" stroke="#6c47ff" stroke-width="0.8" opacity="0.38"/>
+
+<!-- tagline -->
+<text x="240" y="278"
+      text-anchor="middle"
+      font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif"
+      font-size="9.5" font-weight="400" letter-spacing="5.5"
+      fill="#7c3aed" opacity="0.85">NOTHING GETS PAST IT</text>
+</svg>
