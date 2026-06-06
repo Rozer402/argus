@@ -121,4 +121,71 @@ async function postReviewComments(octokit, owner, repo, pull_number, comments, c
   }
 }
 
-module.exports = { getPRDiff, postReviewComments };
+/**
+ * Formats a review issue into a standardized markdown comment.
+ *
+ * @param {object} issue - The issue object containing severity, title, body, impact, and fix
+ * @returns {string} Formatted markdown comment string
+ */
+function formatComment(issue) {
+  let emoji = "ℹ️";
+  if (issue.severity === "HIGH") emoji = "🚨";
+  else if (issue.severity === "MEDIUM") emoji = "⚠️";
+
+  return `${emoji} **${issue.title}**
+
+${issue.body}
+
+**Impact:** ${issue.impact}
+**Fix:** \`${issue.fix}\`
+
+---
+*[Argus](https://github.com/Rozer402/Argus_review) · AI Code Review*`;
+}
+
+/**
+ * Posts a single top-level PR summary comment using the issues API.
+ *
+ * @param {Octokit} octokit      - Authenticated Octokit instance
+ * @param {string}  owner        - Repository owner
+ * @param {string}  repo         - Repository name
+ * @param {number}  pull_number  - Pull request number
+ * @param {object}  summary      - The parsed summary object
+ * @param {number}  durationMs   - Total pipeline duration in milliseconds
+ * @returns {Promise<void>}
+ */
+async function postSummaryComment(octokit, owner, repo, pull_number, summary, durationMs) {
+  try {
+    let risk_emoji = "🟢";
+    if (summary.risk === "HIGH") risk_emoji = "🔴";
+    else if (summary.risk === "MEDIUM") risk_emoji = "🟡";
+
+    let body = `## 👁️ Argus Review\n\n`;
+
+    if (summary.high_count === 0 && summary.medium_count === 0) {
+      body += `**🟢 No issues found** — ${summary.files_reviewed} files reviewed, all clean.\n\n`;
+    } else {
+      body += `| Severity | Count |\n|---|---|\n`;
+      body += `| 🚨 Critical | ${summary.high_count} |\n`;
+      body += `| ⚠️ Warning | ${summary.medium_count} |\n`;
+      body += `| 📁 Files reviewed | ${summary.files_reviewed} |\n\n`;
+    }
+
+    body += `**Overall risk: ${risk_emoji} ${summary.risk}**\n\n`;
+    body += `${summary.headline}\n\n`;
+    body += `---\n*[Argus](https://github.com/Rozer402/Argus_review) · Groq Llama 3.3 70B · ${durationMs}ms*`;
+
+    await withRetry(() => octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: pull_number,
+      body,
+    }));
+    
+    console.log(`[postSummaryComment] Posted PR summary comment.`);
+  } catch (error) {
+    console.error(`[postSummaryComment] Failed to post summary: ${error.message}`);
+  }
+}
+
+module.exports = { getPRDiff, postReviewComments, formatComment, postSummaryComment };

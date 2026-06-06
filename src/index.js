@@ -2,8 +2,8 @@
 
 const { Octokit } = require("@octokit/rest");
 const Groq = require("groq-sdk").default || require("groq-sdk");
-const { getPRDiff, postReviewComments } = require("./github");
-const { reviewCode } = require("./groq");
+const { getPRDiff, postReviewComments, formatComment, postSummaryComment } = require("./github");
+const { reviewCode, generateSummary } = require("./groq");
 
 /**
  * Deterministically maps a string snippet back to the actual line number
@@ -102,12 +102,10 @@ function chunkPatch(patch, maxLines = 300) {
 }
 
 /**
- * Computes severity deterministically based on keyword heuristics.
+ * Validates severity to ensure it matches allowed values.
  */
-function classifySeverity(comment) {
-  const text = comment.toLowerCase();
-  if (/security|injection|xss|csrf|vulnerability|leak/.test(text)) return "HIGH";
-  if (/null|undefined|crash|exception|error|fail/.test(text)) return "MEDIUM";
+function parseSeverity(sev) {
+  if (sev === "HIGH" || sev === "MEDIUM") return sev;
   return "LOW";
 }
 
@@ -179,9 +177,13 @@ async function main() {
 
     console.log(`[PATCH_CHUNK_COUNT] Total chunks processed: ${totalChunks}`);
 
+    const summary = await generateSummary(groqClient, reviewResults);
+
     // Flatten, validate, and filter
     let rawCommentCount = 0;
     let validComments = [];
+    let highCount = 0;
+    let mediumCount = 0;
     const confidenceCounts = { HIGH: 0, MEDIUM: 0, LOW: 0 };
     const dedupeSet = new Set();
 
@@ -193,7 +195,14 @@ async function main() {
       for (const issue of issues) {
         rawCommentCount++;
         
-        if (!issue || typeof issue.code !== "string" || !issue.code.trim() || typeof issue.comment !== "string" || !issue.comment.trim()) {
+        if (
+          !issue || 
+          typeof issue.code !== "string" || !issue.code.trim() || 
+          typeof issue.title !== "string" || !issue.title.trim() ||
+          typeof issue.body !== "string" || !issue.body.trim() ||
+          typeof issue.impact !== "string" || !issue.impact.trim() ||
+          typeof issue.fix !== "string" || !issue.fix.trim()
+        ) {
           fileInvalidCount++;
           console.warn(`[INVALID_COMMENT_REMOVED] Malformed structure for ${filename}`);
           continue;
@@ -221,14 +230,14 @@ async function main() {
         }
 
         // INTELLIGENCE GATE: Severity
-        const severity = classifySeverity(issue.comment);
+        const severity = parseSeverity(issue.severity);
         if (severity === "LOW") {
           console.warn(`[LOW_SEVERITY_DROPPED] Ignored low-value comment in ${filename}`);
           continue; // Drops from being counted as fileValidCount completely
         }
 
         // INTELLIGENCE GATE: Deduplication
-        const dedupeKey = `${filename}:${line}:${issue.comment.trim()}`;
+        const dedupeKey = `${filename}:${line}:${issue.title.trim()}`;
         if (dedupeSet.has(dedupeKey)) {
           console.warn(`[DUPLICATE_COMMENT_REMOVED] Duplicate at ${filename}:${line}`);
           continue;
@@ -236,10 +245,14 @@ async function main() {
         dedupeSet.add(dedupeKey);
 
         fileValidCount++;
+        
+        if (severity === "HIGH") highCount++;
+        if (severity === "MEDIUM") mediumCount++;
+        
         fileComments.push({
           path: filename,
           line,
-          body: `**[${severity} RISK]** ${issue.comment}`,
+          body: formatComment(issue),
           severity
         });
       }
@@ -269,36 +282,18 @@ async function main() {
     console.log(`[FINAL_COMMENT_COUNT] ${validComments.length}`);
 
     if (validComments.length > 0) {
-      // SUMMARY GENERATION
-      let highCount = 0;
-      let mediumCount = 0;
-      let mostCritical = null;
+      summary.high_count = highCount;
+      summary.medium_count = mediumCount;
+      summary.files_reviewed = filesToReview.length;
 
-      for (const c of validComments) {
-        if (c.severity === "HIGH") {
-          highCount++;
-          if (!mostCritical) mostCritical = c;
-        } else {
-          mediumCount++;
-        }
-      }
-
-      let overallRisk = "LOW";
-      if (highCount > 0) overallRisk = "HIGH";
-      else if (mediumCount > 0) overallRisk = "MEDIUM";
-
-      let summaryBody = `🤖 **Argus PR Review Summary**\n\n`;
-      summaryBody += `- **Overall Risk:** ${overallRisk}\n`;
-      summaryBody += `- **Files Reviewed:** ${filesToReview.length}\n`;
-      summaryBody += `- **Issues Found:** ${highCount} HIGH, ${mediumCount} MEDIUM\n`;
+      await postReviewComments(octokitClient, owner, repo, PR_NUMBER, validComments, GITHUB_SHA);
       
-      if (mostCritical) {
-        summaryBody += `\n**Most Critical Issue:**\n> ${mostCritical.body} (in \`${mostCritical.path}\`)\n`;
-      }
-
-      console.log(`[SUMMARY_STATUS] Posting summary: ${overallRisk} Risk`);
-
-      await postReviewComments(octokitClient, owner, repo, PR_NUMBER, validComments, GITHUB_SHA, summaryBody);
+      const durationMs = Date.now() - startTime;
+      await postSummaryComment(
+        octokitClient, owner, repo, PR_NUMBER, summary, durationMs
+      );
+      
+      console.log(`Review complete. ${highCount} critical, ${mediumCount} warnings. ${durationMs}ms.`);
     } else {
       console.log("[SUMMARY_STATUS] No valid issues to post. Skipping.");
     }
@@ -306,24 +301,13 @@ async function main() {
   } catch (error) {
     console.error("Action failed with error:", error.message);
     process.exit(1);
-  } finally {
-    console.log(`[PIPELINE_TIME_MS] ${Date.now() - startTime}`);
   }
 }
 
 main();
-// ping
-// live test
-// retry
 
-function getUser(id) {
-  const user = null;
-  return user.name;
-}
-
-
-function getUser(id) {
-  const user = null;
-  return user.name;
+function processPayment(amount) {
+  const result = chargeCard(amount);
+  return result.transactionId;
 }
 

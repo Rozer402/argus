@@ -1,6 +1,6 @@
 // Wraps the Groq SDK to send prompts and return the model's text response.
 
-const { buildReviewPrompt } = require("./prompts");
+const { buildReviewPrompt, buildSummaryPrompt } = require("./prompts");
 
 /**
  * Executes an async function with exponential backoff retry logic.
@@ -72,4 +72,64 @@ async function reviewCode(groqClient, filename, patch) {
   }
 }
 
-module.exports = { reviewCode };
+/**
+ * Sends review results to Groq to generate a PR-level summary.
+ *
+ * @param {object} groqClient - Authenticated Groq client instance
+ * @param {Array} reviewResults - Array of parsed review results
+ * @returns {Promise<object|null>} Summary object or null on failure
+ */
+async function generateSummary(groqClient, reviewResults) {
+  console.log(`[generateSummary] Calling Groq LLM for PR summary`);
+  try {
+    const response = await withRetry(() => groqClient.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 512,
+      temperature: 0.1,
+      messages: [
+        {
+          role: "user",
+          content: buildSummaryPrompt(reviewResults),
+        },
+      ],
+    }));
+
+    const rawContent = response.choices?.[0]?.message?.content;
+    if (typeof rawContent !== "string") {
+      console.warn(`[INVALID_LLM_STRUCTURE] Unexpected response for summary`);
+      return {
+        risk: "MEDIUM",
+        headline: "Review completed. Manual inspection recommended.",
+        high_count: 0,
+        medium_count: 0,
+        files_reviewed: reviewResults.length
+      };
+    }
+
+    const cleanContent = rawContent.replace(/```json|```/g, "").trim();
+
+    try {
+      return JSON.parse(cleanContent);
+    } catch (parseErr) {
+      console.error(`[LLM_PARSE_FAILED] Failed to parse Groq summary response.`);
+      console.log(`[RAW_LLM_OUTPUT] ${rawContent}`);
+      return {
+        risk: "MEDIUM",
+        headline: "Review completed. Manual inspection recommended.",
+        high_count: 0,
+        medium_count: 0,
+        files_reviewed: reviewResults.length
+      };
+    }
+  } catch (error) {
+    return {
+      risk: "MEDIUM",
+      headline: "Review completed. Manual inspection recommended.",
+      high_count: 0,
+      medium_count: 0,
+      files_reviewed: reviewResults.length
+    };
+  }
+}
+
+module.exports = { reviewCode, generateSummary };
