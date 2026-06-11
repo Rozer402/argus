@@ -1,18 +1,20 @@
-# Defines the GitHub Action's metadata, inputs, outputs, and entry point.
+name: 'Argus PR Reviewer'
+description: 'AI PR reviews using Groq Llama 3.3 70B — inline comments with CRITICAL/WARNING/SUGGESTION severity + risk table.'
+author: 'Aditya Bhusal'
 
-name: "AI PR Reviewer"
-description: "Posts AI code review comments on pull requests using Groq"
-author: "your-github-username"
+branding:
+  icon: 'eye'
+  color: 'green'
 
 inputs:
   groq_api_key:
-    description: "Groq API key for LLM inference"
+    description: 'Your Groq API key (get one free at console.groq.com)'
     required: true
+  github_token:
+    description: 'GitHub token for posting PR comments'
+    required: true
+    default: ${{ github.token }}
 
 runs:
-  using: "node20"
-  main: "src/index.js"
-
-branding:
-  icon: "eye"
-  color: "purple"
+  using: 'node20'
+  main: 'index.js'
