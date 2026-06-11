@@ -1,4 +1,4 @@
-name: 'Argus PR Reviewer'
+name: 'Argus AI PR Review'
 description: 'AI PR reviews using Groq Llama 3.3 70B — inline comments with CRITICAL/WARNING/SUGGESTION severity + risk table.'
 author: 'Aditya Bhusal'
 
