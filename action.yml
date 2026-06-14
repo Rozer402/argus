@@ -2,7 +2,7 @@
 
 name: "AI PR Reviewer"
 description: "Posts AI code review comments on pull requests using Groq"
-author: "your-github-username"
+author:"Rozer402"
 
 inputs:
   groq_api_key:
