@@ -2,6 +2,15 @@
 
 const { buildReviewPrompt } = require("./prompts");
 
+// demo issues for Argus
+const API_SECRET = "hardcoded-secret-key-123"
+var unused_variable = "nobody uses me"
+
+async function fetchData() {
+  const result = fetch('/api/data')
+  return result
+}
+
 /**
  * Executes an async function with exponential backoff retry logic.
  */
