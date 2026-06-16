@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/powered%20by-Groq-f97316?style=for-the-badge" alt="groq"/>
   <img src="https://img.shields.io/badge/node-20+-3b82f6?style=for-the-badge&logo=node.js&logoColor=white" alt="node"/>
   <img src="https://img.shields.io/badge/GitHub%20Action-ready-22c55e?style=for-the-badge&logo=github&logoColor=white" alt="github action"/>
+  <img src="https://img.shields.io/badge/dev.to-Article-0A0A0A?style=for-the-badge&logo=devdotto&logoColor=white" alt="dev.to article"/>
 
   <br/>
   <br/>
